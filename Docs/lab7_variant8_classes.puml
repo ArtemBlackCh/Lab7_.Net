@@ -1,0 +1,144 @@
+@startuml
+title Лабораторна №7, варіант 8 — Система "Міські сповіщення" (.NET 10, WPF)
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+left to right direction
+
+package "Interfaces" {
+  interface IAlertSubscriber {
+    +Name : string
+    +OnAlert(sender : object, e : WeatherEventArgs) : void
+  }
+  interface ILoggable {
+    +Log : IReadOnlyList<string>
+    +WriteLog(message : string) : void
+  }
+  interface IActionExecutor {
+    +Execute() : void
+    +ActionDescription : string
+  }
+}
+
+package "Events & Delegates" {
+  class WeatherEventArgs <<EventArgs>> {
+    +WindSpeed : double
+    +Temperature : double
+    +Message : string
+    +Time : DateTime
+  }
+  class "<<delegate>>\nWeatherEventHandler" as WeatherEventHandler {
+    (sender : object, e : WeatherEventArgs) : void
+  }
+  class "<<delegate>>\nCityActionHandler" as CityActionHandler {
+    (message : string) : void
+  }
+}
+
+package "Hierarchy: City" {
+  class City {
+    +Name : string
+    +Population : int
+    +Area : double
+    +City(name, population, area)
+    +{virtual} GetInfo() : string
+  }
+  class Megapolis {
+    +Districts : int
+    +SubwayLines : int
+    +Megapolis(name, population, area, districts, subwayLines)
+    +{override} GetInfo() : string
+  }
+  City <|-- Megapolis
+}
+
+package "Services (subscribers)" {
+  class EmergencyService {
+    +event MessageGenerated : Action<string>
+    +Name : string
+    +BrigadesReady : bool
+    +OnAlert(sender, e) : void
+    +PrepareBrigades() : void
+    +Execute() : void
+  }
+  class CityAdministration {
+    +event MessageGenerated : Action<string>
+    +Name : string
+    +SmsSentCount : int
+    +ActionChain : CityActionHandler
+    +OnAlert(sender, e) : void
+    +SendSms(message : string) : void
+    +RegisterInJournal(message : string) : void
+    +Execute() : void
+  }
+  class PowerGrid {
+    +event MessageGenerated : Action<string>
+    +Name : string
+    +EnhancedMode : bool
+    +OnAlert(sender, e) : void
+    +SwitchToEnhancedMode() : void
+    +Execute() : void
+  }
+}
+
+class WeatherStation {
+  +City : City
+  +WindSpeed : double
+  +Temperature : double
+  +{static} StormThreshold : double = 25
+  +{static} DropThreshold : double = 10
+  +event StormWarning : WeatherEventHandler
+  +event TemperatureDrop : WeatherEventHandler
+  +event StormCleared : WeatherEventHandler
+  +event MeasurementUpdated : WeatherEventHandler
+  +UpdateMeasurements(wind : double, temp : double) : void
+  #OnStormWarning(e : WeatherEventArgs) : void
+  #OnTemperatureDrop(e : WeatherEventArgs) : void
+  #OnStormCleared(e : WeatherEventArgs) : void
+  #OnMeasurementUpdated(e : WeatherEventArgs) : void
+}
+
+class MainWindow <<WPF Window>> {
+  -_station : WeatherStation
+  -_emergency : EmergencyService
+  -_administration : CityAdministration
+  -_powerGrid : PowerGrid
+  -ApplyButton_Click(sender, e) : void
+  -OnMeasurementUpdated(sender, e) : void
+  -AppendLog(text : string) : void
+}
+
+' implements
+IAlertSubscriber <|.. EmergencyService
+ILoggable        <|.. EmergencyService
+IActionExecutor  <|.. EmergencyService
+
+IAlertSubscriber <|.. CityAdministration
+ILoggable        <|.. CityAdministration
+IActionExecutor  <|.. CityAdministration
+
+IAlertSubscriber <|.. PowerGrid
+ILoggable        <|.. PowerGrid
+IActionExecutor  <|.. PowerGrid
+
+' delegates / args
+WeatherEventHandler ..> WeatherEventArgs
+WeatherStation ..> WeatherEventHandler : events
+WeatherStation ..> WeatherEventArgs : creates
+CityAdministration ..> CityActionHandler : multicast
+
+' associations
+WeatherStation "1" --> "1" City : розташована в
+WeatherStation ..> IAlertSubscriber : підписники\n(+= / -=)
+MainWindow "1" --> "1" WeatherStation
+MainWindow "1" --> "1" EmergencyService
+MainWindow "1" --> "1" CityAdministration
+MainWindow "1" --> "1" PowerGrid
+
+note bottom of WeatherStation
+  StormWarning (WindSpeed > 25) — широкомовна:
+  EmergencyService, CityAdministration, PowerGrid
+  TemperatureDrop — широкомовна:
+  CityAdministration, PowerGrid
+  StormCleared, MeasurementUpdated — для UI
+end note
+@enduml

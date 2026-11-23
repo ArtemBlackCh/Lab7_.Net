@@ -1,0 +1,27 @@
+<Window x:Class="CityAlerts.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Система міських сповіщень" Height="500" Width="780"
+        Background="LightGreen" WindowStartupLocation="CenterScreen">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Grid.Row="0" Header="Панель керування" FontWeight="Bold" FontSize="14" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Вітер (м/с):" VerticalAlignment="Center" FontWeight="Normal"/>
+                <TextBox x:Name="txtWind" Width="70" Margin="10,0,20,0" VerticalContentAlignment="Center" Text="10"/>
+                <TextBlock Text="Температура (°C):" VerticalAlignment="Center" FontWeight="Normal"/>
+                <TextBox x:Name="txtTemperature" Width="70" Margin="10,0,20,0" VerticalContentAlignment="Center" Text="15"/>
+                <Button x:Name="btnApply" Content="Застосувати" Width="150" Height="35"
+                        Background="DarkRed" Foreground="Khaki" Click="btnApply_Click"/>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Grid.Row="1" Header="Журнал подій" FontWeight="Bold" FontSize="14" Padding="10" Margin="0,15,0,0">
+            <ListBox x:Name="logListBox" FontWeight="Normal" FontSize="13"/>
+        </GroupBox>
+    </Grid>
+</Window>
